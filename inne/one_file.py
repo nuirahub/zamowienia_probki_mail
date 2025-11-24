@@ -1,18 +1,18 @@
 import csv
 import os
 import logging
-import smtplib  # Do ewentualnej wysyłki maili
+import smtplib
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
-from dataclasses import dataclass
+from typing import List, Optional
+from dataclasses import dataclass, asdict
 
 # --- KONFIGURACJA ---
 CSV_FILE = "tasks_database.csv"
 LOG_FILE = "process_log.log"
-REMINDER_DAYS = 7  # Po ilu dniach wysłać ponaglenie
+REMINDER_DAYS = 7
 CSV_HEADERS = ["sample_id", "customer_id", "created_at", "status", "last_update"]
 
-# --- LOGOWANIE ---
+# --- KONFIGURACJA LOGOWANIA ---
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -22,227 +22,258 @@ logging.basicConfig(
     ]
 )
 
-# --- MODELE DANYCH ---
+# --- 1. DEFINICJA WŁASNEGO WYJĄTKU ---
+class NoDataFoundError(Exception):
+    """Rzucany, gdy źródło danych zwróci None (np. błąd API/Bazy) zamiast listy."""
+    pass
+
+# --- 2. MODELE DANYCH (Data Classes) ---
+
 @dataclass
 class Sample:
+    """Reprezentuje dane z zewnętrznego systemu próbek."""
     id: str
     customer_id: str
     status: str
     shipped_date: datetime
 
-# --- MOCKI (ZAŚLEPKI) ---
-# Tutaj wstawisz swoje faktyczne funkcje łączące się z bazą SQL i LLM
-def get_samples_from_external_db(days_back=14) -> List[Sample]:
-    """Symulacja pobierania danych z zewnętrznego systemu."""
-    # Przykład danych
-    return [
-        Sample(id="SAMPLE_001", customer_id="CUST_A", status="Wysłane", shipped_date=datetime.now() - timedelta(days=2)),
-        Sample(id="SAMPLE_002", customer_id="CUST_B", status="Wysłane", shipped_date=datetime.now() - timedelta(days=10)),
+@dataclass
+class Task:
+    """
+    Reprezentuje jeden wiersz w tabeli TASKS.
+    To jest Twój model docelowy. Dzięki niemu kod biznesowy
+    ma podpowiadanie składni (task.sample_id) zamiast task['sample_id'].
+    """
+    sample_id: str
+    customer_id: str
+    created_at: datetime
+    status: str        # np. 'OPEN', 'REMINDED', 'CLOSED'
+    last_update: datetime
+
+# --- 3. MOCKI (Symulacja zewnętrznych systemów) ---
+
+def get_samples_from_external_db() -> List[Sample]:
+    """Symulacja pobierania danych. Może rzucić NoDataFoundError."""
+    
+    # SYMULACJA BŁĘDU: Odkomentuj linię poniżej, aby przetestować obsługę błędu
+    # db_response = None 
+    
+    # SYMULACJA POPRAWNYCH DANYCH
+    db_response = [
+        {'id': 'SAMP_001', 'cust': 'CLIENT_A', 'status': 'Wysłane', 'date': '2023-10-20'},
+        {'id': 'SAMP_002', 'cust': 'CLIENT_B', 'status': 'Wysłane', 'date': '2023-11-01'},
     ]
 
+    if db_response is None:
+        raise NoDataFoundError("Zewnętrzna baza próbek zwróciła wartość NULL.")
+
+    # Mapowanie surowych danych na obiekty Sample
+    samples = []
+    for item in db_response:
+        samples.append(Sample(
+            id=item['id'],
+            customer_id=item['cust'],
+            status=item['status'],
+            shipped_date=datetime.strptime(item['date'], "%Y-%m-%d")
+        ))
+    return samples
+
 def check_llm_notes(customer_id: str, sample_id: str) -> bool:
-    """Symulacja LLM. Zwraca True, jeśli klient potwierdził odbiór w notatce."""
-    return False  # Domyślnie: brak potwierdzenia
+    """Zwraca True jeśli LLM znajdzie potwierdzenie w notatce."""
+    return False  # Symulacja: brak notatki
 
-def send_email(to_user: str, subject: str, body: str):
-    """Symulacja wysyłki maila."""
-    logging.info(f"[MAIL] Do: {to_user} | Temat: {subject}")
+def send_email(to: str, subject: str, body: str):
+    logging.info(f"📧 EMAIL do {to} | {subject}")
 
-# --- REPOZYTORIUM CSV (Serce operacji na plikach) ---
+# --- 4. REPOZYTORIUM (Warstwa dostępu do danych) ---
+
 class CsvTasksRepository:
     def __init__(self, filepath=CSV_FILE):
         self.filepath = filepath
         self._ensure_file_exists()
 
     def _ensure_file_exists(self):
-        """Tworzy plik z nagłówkami, jeśli nie istnieje."""
         if not os.path.exists(self.filepath):
-            try:
-                with open(self.filepath, mode='w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(CSV_HEADERS)
-                logging.info(f"Utworzono nowy plik bazy danych: {self.filepath}")
-            except IOError as e:
-                logging.critical(f"Nie można utworzyć pliku CSV! {e}")
-                raise
+            with open(self.filepath, mode='w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(CSV_HEADERS)
+            logging.info(f"Utworzono plik bazy: {self.filepath}")
 
-    def _read_all_tasks(self) -> List[Dict]:
-        """Pomocnicza: czyta cały plik do pamięci."""
-        tasks = []
+    # --- METODY POMOCNICZE (SERIALIZACJA/DESERIALIZACJA) ---
+    
+    def _row_to_task(self, row: dict) -> Optional[Task]:
+        """Konwertuje słownik z CSV na obiekt Task. Zwraca None, jeśli dane są uszkodzone."""
+        try:
+            return Task(
+                sample_id=row['sample_id'],
+                customer_id=row['customer_id'],
+                created_at=datetime.fromisoformat(row['created_at']),
+                status=row['status'],
+                last_update=datetime.fromisoformat(row['last_update'])
+            )
+        except (ValueError, KeyError, TypeError):
+            logging.warning(f"Uszkodzony rekord w CSV dla ID: {row.get('sample_id', 'UNKNOWN')}")
+            return None
+
+    def _task_to_row(self, task: Task) -> dict:
+        """Konwertuje obiekt Task na słownik do zapisu w CSV."""
+        return {
+            "sample_id": task.sample_id,
+            "customer_id": task.customer_id,
+            "created_at": task.created_at.isoformat(),
+            "status": task.status,
+            "last_update": task.last_update.isoformat()
+        }
+
+    # --- GŁÓWNE OPERACJE NA DANYCH ---
+
+    def get_all_tasks(self) -> List[Task]:
+        """
+        Czyta plik i zwraca LISTĘ OBIEKTÓW typu Task.
+        To jest kluczowa zmiana - pracujemy na typach, nie dictach.
+        """
+        tasks_objects = []
         try:
             with open(self.filepath, mode='r', newline='', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    tasks.append(row)
+                    task_obj = self._row_to_task(row)
+                    if task_obj:
+                        tasks_objects.append(task_obj)
         except FileNotFoundError:
-            logging.error("Plik CSV zniknął w trakcie pracy.")
+            logging.error("Plik bazy danych nie istnieje.")
             return []
-        return tasks
+        
+        return tasks_objects
 
-    def _save_all_tasks(self, tasks: List[Dict]):
-        """Pomocnicza: nadpisuje plik nową listą zadań."""
+    def save_all_tasks(self, tasks: List[Task]):
+        """Nadpisuje plik CSV listą obiektów Task."""
         try:
             with open(self.filepath, mode='w', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(f, fieldnames=CSV_HEADERS)
                 writer.writeheader()
-                writer.writerows(tasks)
+                for task in tasks:
+                    writer.writerow(self._task_to_row(task))
         except IOError as e:
-            logging.error(f"Błąd zapisu do CSV: {e}")
-
-    def task_exists(self, sample_id: str) -> bool:
-        tasks = self._read_all_tasks()
-        for task in tasks:
-            if task['sample_id'] == sample_id:
-                return True
-        return False
+            logging.error(f"Błąd zapisu bazy: {e}")
 
     def add_task(self, sample_id: str, customer_id: str):
-        # Tryb 'a' (append) jest bezpieczniejszy niż nadpisywanie całości
+        """Dodaje nowe zadanie (append) bez czytania całości."""
+        new_task = Task(
+            sample_id=sample_id,
+            customer_id=customer_id,
+            created_at=datetime.now(),
+            status="OPEN",
+            last_update=datetime.now()
+        )
         try:
             with open(self.filepath, mode='a', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(f, fieldnames=CSV_HEADERS)
-                # Sprawdzamy czy plik nie jest pusty (np. ktoś usunął nagłówki)
-                if f.tell() == 0:
-                    writer.writeheader()
-                
-                writer.writerow({
-                    "sample_id": sample_id,
-                    "customer_id": customer_id,
-                    "created_at": datetime.now().isoformat(),
-                    "status": "OPEN",
-                    "last_update": datetime.now().isoformat()
-                })
-            logging.info(f"Dodano zadanie do CSV: {sample_id}")
+                if f.tell() == 0: writer.writeheader()
+                writer.writerow(self._task_to_row(new_task))
+            logging.info(f"Dodano zadanie: {sample_id}")
         except IOError as e:
             logging.error(f"Nie udało się dopisać zadania: {e}")
 
-    def get_overdue_tasks(self) -> List[Dict]:
-        """Zwraca listę zadań, które są OPEN i starsze niż REMINDER_DAYS."""
-        tasks = self._read_all_tasks()
-        overdue = []
-        now = datetime.now()
+    def task_exists(self, sample_id: str) -> bool:
+        # Optymalizacja: w małych plikach czytamy wszystko, w dużych bazach zrobisz SELECT count
+        all_tasks = self.get_all_tasks()
+        return any(t.sample_id == sample_id for t in all_tasks)
 
-        for task in tasks:
-            # Walidacja struktury wiersza
-            if 'status' not in task or 'created_at' not in task:
-                continue 
-            
-            if task['status'] == 'OPEN':
-                try:
-                    # Parsowanie daty
-                    created_at = datetime.fromisoformat(task['created_at'])
-                    if (now - created_at).days >= REMINDER_DAYS:
-                        overdue.append(task)
-                except ValueError:
-                    logging.warning(f"Uszkodzona data w rekordzie {task.get('sample_id')}. Pomijam.")
-        return overdue
+# --- 5. LOGIKA BIZNESOWA (FLOWS) ---
 
-    def update_task_status(self, sample_id: str, new_status: str):
-        """W CSV musimy odczytać całość, zmienić w pamięci i zapisać całość."""
-        tasks = self._read_all_tasks()
-        updated = False
-        
-        for task in tasks:
-            if task['sample_id'] == sample_id:
-                task['status'] = new_status
-                task['last_update'] = datetime.now().isoformat()
-                updated = True
-                break # Zakładamy unikalność ID, więc kończymy pętlę
-        
-        if updated:
-            self._save_all_tasks(tasks)
-            logging.info(f"Zaktualizowano status {sample_id} na {new_status}")
-
-# --- FLOW 1: TWORZENIE NOWYCH ZADAŃ ---
 def process_new_samples(repo: CsvTasksRepository):
-    logging.info("--- ETAP 1: Sprawdzanie nowych próbek ---")
+    logging.info("--- ETAP 1: Nowe Próbki ---")
     
     try:
         samples = get_samples_from_external_db()
-    except Exception as e:
-        logging.error(f"Błąd połączenia ze źródłem próbek: {e}")
-        return # Early return - nie ma danych, wychodzimy
+        
+        # Jeśli lista jest pusta (ale nie None), to po prostu return
+        if not samples:
+            logging.info("Brak nowych próbek.")
+            return
 
-    if not samples:
-        logging.info("Brak próbek do przetworzenia.")
-        return
-
-    for sample in samples:
-        try:
-            # Logika biznesowa
-            if sample.status != "Wysłane":
-                continue
+        for sample in samples:
+            try:
+                if sample.status != "Wysłane":
+                    continue
                 
-            if repo.task_exists(sample.id):
-                continue # Już obsłużone
+                if repo.task_exists(sample.id):
+                    continue
 
-            # Sprawdzenie LLM
-            is_resolved = check_llm_notes(sample.customer_id, sample.id)
-            
-            if is_resolved:
-                logging.info(f"Próbka {sample.id} potwierdzona (LLM). Pomijam tworzenie zadania.")
-                # Opcjonalnie: można dodać do CSV jako CLOSED, żeby nie pytać LLM ponownie
-            else:
-                logging.info(f"Brak potwierdzenia dla {sample.id}. Tworzę zadanie.")
-                repo.add_task(sample.id, sample.customer_id)
-                send_email("opiekun@firma.pl", f"Monitoruj próbkę {sample.id}", "Wysłano próbkę, brak potwierdzenia.")
+                # Sprawdzenie LLM
+                if check_llm_notes(sample.customer_id, sample.id):
+                    logging.info(f"Znaleziono notatkę dla {sample.id}. Nie tworzę zadania.")
+                else:
+                    logging.info(f"Brak notatki dla {sample.id}. Tworzę zadanie.")
+                    repo.add_task(sample.id, sample.customer_id)
+                    send_email("opiekun@firma.pl", f"Nowe zadanie: {sample.id}", "Sprawdź status.")
 
-        except Exception as e:
-            logging.error(f"Błąd przy przetwarzaniu próbki {sample.id}: {e}")
-            # Continue działa tu automatycznie, pętla idzie dalej
+            except Exception as e:
+                logging.error(f"Błąd przetwarzania pojedynczej próbki {sample.id}: {e}")
 
-# --- FLOW 2: PONAGLENIA (MAINTENANCE) ---
-def process_reminders(repo: CsvTasksRepository):
-    logging.info("--- ETAP 2: Weryfikacja zaległości (CSV) ---")
+    except NoDataFoundError as e:
+        # TUTAJ ŁAPIEMY TWÓJ CUSTOMOWY BŁĄD
+        logging.warning(f"⚠️ PRZERWANO ETAP 1: {e}. Przechodzę do następnego etapu.")
     
-    # Nie używamy try-except na całość, bo metoda get_overdue_tasks jest bezpieczna
-    overdue_tasks = repo.get_overdue_tasks()
+    except Exception as e:
+        logging.error(f"Krytyczny błąd techniczny w ETAPIE 1: {e}")
 
-    if not overdue_tasks:
-        logging.info("Brak zaległych zadań.")
+def process_reminders(repo: CsvTasksRepository):
+    logging.info("--- ETAP 2: Ponaglenia ---")
+    
+    # Pobieramy obiekty Task
+    all_tasks = repo.get_all_tasks()
+    if not all_tasks:
         return
 
-    for task in overdue_tasks:
-        sample_id = task['sample_id']
-        try:
-            logging.info(f"Wysyłam ponaglenie dla zadania: {sample_id}")
-            
-            # Wysłanie maila
-            send_email(
-                "opiekun@firma.pl", 
-                f"PONAGLENIE: Próbka {sample_id}", 
-                "Minął tydzień, a status jest nadal otwarty."
-            )
-            
-            # Aktualizacja w CSV
-            repo.update_task_status(sample_id, "REMINDED")
-            
-        except Exception as e:
-            logging.error(f"Nie udało się wysłać ponaglenia dla {sample_id}: {e}")
+    tasks_modified = False
+    now = datetime.now()
 
-# --- GŁÓWNY ORCHESTRATOR ---
+    for task in all_tasks:
+        # Tutaj działamy na obiekcie Task, a nie na słowniku!
+        # Mamy dostęp do task.status zamiast task['status']
+        
+        if task.status == 'OPEN':
+            delta = now - task.created_at
+            if delta.days >= REMINDER_DAYS:
+                try:
+                    logging.info(f"Zadanie {task.sample_id} przeterminowane ({delta.days} dni). Wysyłam maila.")
+                    send_email(
+                        "opiekun@firma.pl", 
+                        f"PONAGLENIE: {task.sample_id}", 
+                        "Zadanie wisi od tygodnia."
+                    )
+                    
+                    # Aktualizujemy stan obiektu
+                    task.status = 'REMINDED'
+                    task.last_update = now
+                    tasks_modified = True
+                    
+                except Exception as e:
+                    logging.error(f"Błąd wysyłki maila dla {task.sample_id}: {e}")
+
+    # Jeśli zmieniliśmy jakieś statusy, zapisujemy całość do pliku
+    if tasks_modified:
+        repo.save_all_tasks(all_tasks)
+        logging.info("Zaktualizowano plik bazy danych po wysyłce ponagleń.")
+    else:
+        logging.info("Brak zmian w statusach zadań.")
+
+# --- 6. GŁÓWNY ORCHESTRATOR ---
+
 def main():
-    logging.info("URUCHOMIENIE AUTOMATU")
+    logging.info("START AUTOMATU")
     
-    # 1. Inicjalizacja Repozytorium (tworzy plik CSV jeśli brak)
     try:
         repo = CsvTasksRepository()
     except Exception as e:
-        logging.critical("Błąd krytyczny inicjalizacji CSV. Stop.")
+        logging.critical(f"Nie można uruchomić repozytorium: {e}")
         return
 
-    # 2. Uruchomienie obu procesów niezależnie
-    # Błąd w jednym nie zatrzymuje drugiego
-    
-    try:
-        process_new_samples(repo)
-    except Exception as e:
-        logging.error(f"Krytyczny błąd w ETAPIE 1: {e}", exc_info=True)
-
-    try:
-        process_reminders(repo)
-    except Exception as e:
-        logging.error(f"Krytyczny błąd w ETAPIE 2: {e}", exc_info=True)
+    # Uruchomienie niezależnych procesów
+    process_new_samples(repo)
+    process_reminders(repo)
 
     logging.info("KONIEC PRACY")
 
