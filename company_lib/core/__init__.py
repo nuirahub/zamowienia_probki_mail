@@ -1,0 +1,4 @@
+"""
+Warstwa techniczna - narzędzia niskopoziomowe.
+"""
+

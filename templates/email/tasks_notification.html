@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nowe zadania do wykonania</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #2196F3;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .task-item {
+            background-color: white;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .task-header {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        .task-details {
+            margin-left: 20px;
+            color: #666;
+        }
+        .task-details p {
+            margin: 5px 0;
+        }
+        .summary {
+            background-color: #E3F2FD;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Nowe zadania do wykonania</h1>
+    </div>
+    <div class="content">
+        <div class="summary">
+            Masz {{ tasks_count }} {% if tasks_count == 1 %}nowe zadanie{% else %}nowych zadań{% endif %} do weryfikacji próbek
+        </div>
+        
+        <p>Witaj,</p>
+        <p>System wykrył, że dla poniższych próbek nie ma potwierdzenia otrzymania przez klientów. Prosimy o weryfikację:</p>
+        
+        {% for task in tasks %}
+        <div class="task-item">
+            <div class="task-header">
+                Zadanie #{{ task.task_id }} - {{ task.customer_name }}
+            </div>
+            <div class="task-details">
+                <p><strong>Klient:</strong> {{ task.customer_name }} (ID: {{ task.customer_id }})</p>
+                <p><strong>Próbka ID:</strong> {{ task.sample_id }}</p>
+                <p><strong>Data wysłania:</strong> {{ task.sample_date }}</p>
+                <p><strong>Opis:</strong> {{ task.description }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <p style="margin-top: 20px;">
+            <strong>Prosimy o:</strong><br>
+            1. Skontaktowanie się z klientami w celu potwierdzenia otrzymania próbek<br>
+            2. Dodanie notatki w systemie po otrzymaniu potwierdzenia<br>
+            3. Oznaczenie zadania jako wykonanego w systemie
+        </p>
+    </div>
+    <div class="footer">
+        <p>To jest automatyczna wiadomość z systemu automatyzacji. Prosimy nie odpowiadać.</p>
+    </div>
+</body>
+</html>
+

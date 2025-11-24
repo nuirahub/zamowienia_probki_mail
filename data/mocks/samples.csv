@@ -1,0 +1,7 @@
+id;customer_id;status;date_sent;notes
+1;CUST_001;Sent;2025-11-19;Próbki kawy arabica
+2;CUST_002;Sent;2025-11-14;Próbki kawy robusta
+3;CUST_003;Draft;2025-11-22;Przygotowanie do wysyłki
+4;CUST_001;Sent;2025-11-22;Dodatkowe próbki
+3;CUST_001;Draft;2025-11-24;Przygotowanie do wysyłki
+3;CUST_003;Sent;2025-11-23;Próbki nr 2

@@ -1,0 +1,3 @@
+﻿id;customer_id;status;date_sent;notes
+100;TEST_001;Sent;2025-11-25;Testowa próbka 1
+101;TEST_002;Draft;2025-11-26;

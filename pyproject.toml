@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "company_lib"
+version = "0.1.0"
+description = "Biblioteka narzędziowa do automatyzacji firmy"
+dependencies = [
+    "pyodbc",
+    "python-dotenv",
+    "jinja2",
+    "pydantic",
+    "google-generativeai",
+    "openai",
+    "requests"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]  # Szuka pakietów w głównym katalogu (znajdzie company_lib)
+

@@ -1,0 +1,5 @@
+﻿id;customer_id;status;date_sent;notes
+;CUST_001;Sent;2025-11-19;Test
+2;;Sent;2025-11-19;Test
+3;CUST_003;;2025-11-19;Test
+4;CUST_004;Sent;;Test

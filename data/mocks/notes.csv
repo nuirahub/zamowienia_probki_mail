@@ -1,0 +1,7 @@
+id;customer_id;content;created_at;is_processed
+1;CUST_001;Klient prosi o przesłanie próbek kawy. Pilne.;2025-11-19;False
+2;CUST_001;Klient dzwonił, próbki dotarły i są super.;2025-11-21;False
+3;CUST_002;Brak kontaktu od wysyłki próbek.;2025-11-15;False
+4;CUST_003;Zgłaszam reklamację produktu.;2025-11-18;False
+5;CUST_001;Dziękujemy za szybką odpowiedź.;2025-11-23;True
+

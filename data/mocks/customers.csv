@@ -1,0 +1,5 @@
+id;name;email;phone;salesperson_email;created_at
+CUST_001;Jan Kowalski;j.kowalski@example.com;+48123456789;sprzedawca1@firma.pl;2023-01-15
+CUST_002;Anna Nowak;a.nowak@example.com;+48987654321;sprzedawca2@firma.pl;2023-02-20
+CUST_003;Piotr Wiśniewski;p.wisniewski@example.com;+48111222333;sprzedawca1@firma.pl;2023-03-10
+

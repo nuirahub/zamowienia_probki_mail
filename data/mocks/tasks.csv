@@ -1,0 +1,4 @@
+﻿id;customer_id;sample_id;task_type;description;status;created_at;assigned_to
+1;CUST_002;2;SAMPLE_FOLLOWUP;Sprawdź czy klient Anna Nowak (CUST_002) otrzymał próbkę wysłaną 2025-11-14. Próbka ID: 2;PENDING;2025-11-24 19:17:54;sprzedawca2@firma.pl
+2;CUST_001;4;SAMPLE_FOLLOWUP;Sprawdź czy klient Jan Kowalski (CUST_001) otrzymał próbkę wysłaną 2025-11-22. Próbka ID: 4;PENDING;2025-11-24 19:18:28;sprzedawca1@firma.pl
+3;CUST_003;3;SAMPLE_FOLLOWUP;Sprawdź czy klient Piotr Wiśniewski (CUST_003) otrzymał próbkę wysłaną 2025-11-23. Próbka ID: 3;PENDING;2025-11-24 19:21:12;sprzedawca1@firma.pl
