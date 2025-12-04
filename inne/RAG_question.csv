@@ -1,0 +1,46 @@
+Grupa Tematyczna;Pytanie (User Prompt);Oczekiwana Odpowiedź / Akcja;Źródło Odp.;Parametry
+Przygotowanie do spotkania;Podsumuj ostatnie 3 spotkania z klientem [Nazwa Klienta] w punktach.;Lista kluczowych tematów, ustaleń i dat spotkań.;Semantyczne (Notatki);[Nazwa Klienta]
+Przygotowanie do spotkania;Kto z firmy [Nazwa Klienta] brał udział w ostatnim spotkaniu i jaka jest jego rola?;Imiona, nazwiska i stanowiska uczestników.;Semantyczne (Notatki);[Nazwa Klienta]
+Przygotowanie do spotkania;O jakie tematy prywatne mogę zapytać [Osoba] na początku rozmowy (ice-breaker)?;Wzmianki o hobby, rodzinie, wakacjach z notatek.;Semantyczne (Notatki);[Osoba]
+Przygotowanie do spotkania;Jaki jest status ostatnich ustaleń z klientem [Nazwa Klienta]?;Lista "Action Items" ze statusem realizacji.;Semantyczne (Notatki);[Nazwa Klienta]
+Przygotowanie do spotkania;Przypomnij mi, jakie warunki handlowe negocjowaliśmy ostatnio z [Nazwa Klienta]?;Szczegóły rabatów, terminów płatności omawiane w notatkach.;Semantyczne (Notatki);[Nazwa Klienta]
+Operacyjne / Kontakt;Podaj numer telefonu i email do [Osoba] z firmy [Nazwa Klienta].;Dane kontaktowe z CRM/Listy klientów.;SQL (Lista Klientów);[Osoba], [Nazwa Klienta]
+Operacyjne / Kontakt;Kiedy ostatnio kontaktowaliśmy się z [Nazwa Klienta]?;Data ostatniej notatki lub logu kontaktu.;Mieszane (Metadane Notatek);[Nazwa Klienta]
+Operacyjne / Kontakt;Pokaż listę klientów, z którymi nie było kontaktu powyżej 30 dni.;Lista nazw klientów z datą ostatniego kontaktu.;Mieszane (SQL na dacie notatki);Dni > 30
+Operacyjne / Kontakt;Kto jest opiekunem handlowym klienta [Nazwa Klienta]?;Imię i nazwisko opiekuna.;SQL (Lista Klientów);[Nazwa Klienta]
+Operacyjne / Kontakt;Jaki jest adres dostawy dla klienta [Nazwa Klienta]?;Pełny adres fizyczny.;SQL (Lista Klientów/Zamówienia);[Nazwa Klienta]
+Historia Zamówień;Co najczęściej zamawia klient [Nazwa Klienta]?;Lista top 3-5 produktów pod względem ilości/wartości.;SQL (Zamówienia);[Nazwa Klienta]
+Historia Zamówień;Jaka jest łączna wartość zamówień klienta [Nazwa Klienta] w tym roku?;Suma kwot zamówień (YTD).;SQL (Zamówienia);[Nazwa Klienta], [Rok]
+Historia Zamówień;Kiedy klient [Nazwa Klienta] złożył ostatnie zamówienie?;Data ostatniego zamówienia.;SQL (Zamówienia);[Nazwa Klienta]
+Historia Zamówień;Jak zmieniała się wartość zamówień [Nazwa Klienta] kwartał do kwartału?;Trend rosnący/malejący z liczbami.;SQL (Zamówienia);[Nazwa Klienta]
+Historia Zamówień;Wylistuj 5 klientów o największym obrocie w kategorii [Kategoria Produktu].;Ranking klientów.;SQL (Zamówienia + Produkty);[Kategoria Produktu]
+Szanse Sprzedażowe (Upsell);Klient kupuje [Produkt A], co jeszcze powinien dokupić?;Rekomendacja produktu komplementarnego na bazie bazy produktów.;Mieszane (Reguły produktowe + Historia);[Produkt A]
+Szanse Sprzedażowe (Upsell);Którzy klienci kupili produkt [Produkt X], ale nie kupili serwisu [Usługa Y]?;Lista klientów do targetowania.;SQL (Zamówienia);[Produkt X], [Usługa Y]
+Szanse Sprzedażowe (Upsell);Znajdź klientów, którym kończy się zapas produktu [Produkt Zużywalny] (na bazie średniej częstotliwości).;Lista klientów z predykcją daty.;SQL (Analiza częstotliwości zamówień);[Produkt Zużywalny]
+Szanse Sprzedażowe (Upsell);Wskaż klientów z branży [Branża], którzy nie zamawiali nic w ostatnim kwartale.;Lista klientów (szansa na reaktywację).;SQL (Klienci + Zamówienia);[Branża]
+Szanse Sprzedażowe (Upsell);Jakie produkty były przedmiotem zainteresowania [Nazwa Klienta] w notatkach, ale nie zostały jeszcze kupione?;Lista produktów wspomnianych w notatkach minus lista zamówień.;Mieszane (Notatki - Zamówienia);[Nazwa Klienta]
+Analiza Sentymentu i Ryzyka;Czy klient [Nazwa Klienta] jest zadowolony ze współpracy?;Ocena sentymentu na podstawie przymiotników w ostatnich notatkach.;Semantyczne (Notatki);[Nazwa Klienta]
+Analiza Sentymentu i Ryzyka;Wylistuj klientów, którzy zgłaszali reklamacje lub problemy techniczne w ostatnim miesiącu.;Lista klientów ze wzmiankami o błędach/awariach.;Semantyczne (Notatki);Okres: 1 m-c
+Analiza Sentymentu i Ryzyka;Jakie są najczęstsze obiekcje cenowe zgłaszane przez klientów?;Podsumowanie argumentów klientów dot. ceny.;Semantyczne (Notatki);Brak
+Analiza Sentymentu i Ryzyka;W kontekście których klientów pojawia się nazwa konkurencji [Nazwa Konkurenta]?;Lista klientów rozważających przejście do konkurencji.;Semantyczne (Notatki);[Nazwa Konkurenta]
+Analiza Sentymentu i Ryzyka;Czy widać zmianę tonu rozmów z [Nazwa Klienta] na przestrzeni roku?;Analiza trendu sentymentu (np. z entuzjastycznego na chłodny).;Semantyczne (Notatki);[Nazwa Klienta]
+Wiedza Produktowa;Jakie są główne różnice między [Produkt A] a [Produkt B]?;Porównanie cech/specyfikacji.;Semantyczne (Lista Produktów);[Produkt A], [Produkt B]
+Wiedza Produktowa;Czy [Produkt A] jest kompatybilny z systemem klienta [Nazwa Klienta] (na podst. notatek tech)?;Weryfikacja wymagań technicznych z notatek vs specyfikacja.;Mieszane (Notatki + Lista Produktów);[Produkt A], [Nazwa Klienta]
+Wiedza Produktowa;Znajdź tańszy zamiennik dla produktu [Produkt A] z naszej oferty.;Rekomendacja produktu o podobnych cechach i niższej cenie.;SQL/Semantyczne (Lista Produktów);[Produkt A]
+Wiedza Produktowa;Jakie argumenty sprzedażowe najlepiej działają przy sprzedaży [Produkt X]?;Wnioski z notatek zakończonych sukcesem (zamówieniem).;Mieszane (Notatki + Zamówienia);[Produkt X]
+Wiedza Produktowa;Jaka jest aktualna cena katalogowa [Produkt A]?;Cena jednostkowa.;SQL (Lista Produktów);[Produkt A]
+Generowanie Treści (Drafty);Napisz maila follow-up do [Nazwa Klienta] podsumowującego spotkanie z [Data].;Gotowy tekst maila z użytymi faktami z notatki.;Semantyczne (Notatki);[Nazwa Klienta], [Data]
+Generowanie Treści (Drafty);Przygotuj agendę spotkania dla [Nazwa Klienta] uwzględniającą ich otwarte problemy.;Lista punktów do omówienia.;Semantyczne (Notatki);[Nazwa Klienta]
+Generowanie Treści (Drafty);Stwórz notatkę o braku aktywności dla klienta, który nie kupował od 6 miesięcy.;Empatyczny mail "Tęsknimy za Wami".;SQL (Ostatnie zamówienie) + GenAI;Okres: 6 m-cy
+Generowanie Treści (Drafty);Wygeneruj listę pytań, które powinienem zadać klientowi z branży [Branża] na pierwszym spotkaniu.;Scenariusz rozmowy kwalifikacyjnej.;Semantyczne (Baza wiedzy/Produkty);[Branża]
+Zarządzaniez Czasem;Z jakimi klientami mam zaplanowane spotkania w przyszłym tygodniu?;Lista klientów (wymaga integracji z kalendarzem lub dat w notatkach).;Mieszane;Data przyszła
+Zarządzanie Czasem;Dla których klientów obiecałem przygotować ofertę, ale nie ma jej w systemie?;Wyszukanie deklaracji "przyślę ofertę" w notatkach bez pokrycia w systemie ofert.;Mieszane (Notatki vs System);Brak
+Zarządzanie Czasem;Przypomnij mi, kiedy [Nazwa Klienta] wraca z urlopu?;Wyszukanie dat powrotu w treści notatek.;Semantyczne (Notatki);[Nazwa Klienta]
+Analiza Strategiczna;Które produkty generują najwięcej problemów wdrożeniowych wg notatek?;Ranking produktów z negatywnym sentymentem wdrożeniowym.;Mieszane (Produkty + Notatki);Brak
+Analiza Strategiczna;Jaki jest średni czas od pierwszego kontaktu do pierwszego zamówienia?;Analiza cyklu sprzedaży.;Mieszane (Notatki data min. vs Zamówienia data min.);Brak
+Analiza Strategiczna;Zidentyfikuj klientów VIP (wysoki obrót), z którymi mamy słabą relację (rzadki kontakt).;Macierz: Wysokie Zamówienia vs Mała liczba Notatek.;Mieszane (SQL vs Metadata);Segment VIP
+Administracja;Czy dla klienta [Nazwa Klienta] mamy uzupełniony NIP w bazie?;Sprawdzenie kompletności danych.;SQL (Lista Klientów);[Nazwa Klienta]
+Administracja;Pokaż notatki, w których brakuje zdefiniowanych kolejnych kroków (Next Steps).;Lista notatek do uzupełnienia.;Semantyczne (Analiza struktury notatki);Brak
+Administracja;Jakie produkty zostały wycofane, a wciąż pojawiają się w zapytaniach klientów?;Porównanie nazw z notatek ze statusem "wycofany" w produktach.;Mieszane;Status: Wycofany
+Administracja;Zsumuj sprzedaż produktów z kategorii [Kategoria] dla regionu [Region].;Raport sprzedażowy.;SQL (Zamówienia + Klienci);[Kategoria], [Region]
+Administracja;Znajdź duplikaty w liście klientów na podstawie nazwy lub NIP.;Lista potencjalnych rekordów do scalenia.;SQL (Lista Klientów);Brak
