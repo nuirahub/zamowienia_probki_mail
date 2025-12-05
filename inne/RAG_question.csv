@@ -44,3 +44,6 @@ Administracja;Pokaż notatki, w których brakuje zdefiniowanych kolejnych krokó
 Administracja;Jakie produkty zostały wycofane, a wciąż pojawiają się w zapytaniach klientów?;Porównanie nazw z notatek ze statusem "wycofany" w produktach.;Mieszane;Status: Wycofany
 Administracja;Zsumuj sprzedaż produktów z kategorii [Kategoria] dla regionu [Region].;Raport sprzedażowy.;SQL (Zamówienia + Klienci);[Kategoria], [Region]
 Administracja;Znajdź duplikaty w liście klientów na podstawie nazwy lub NIP.;Lista potencjalnych rekordów do scalenia.;SQL (Lista Klientów);Brak
+
+Email do IT - sql -
+Kto mi pomoże z zepsutym ekspresem do kawy (Vector Search po Opis_Obowiazkow)
